@@ -161,7 +161,7 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="all"):
     if classifier == "KNN" or classifier == "all":
         notFound=1
         from sklearn.neighbors import KNeighborsClassifier
-        tempModel = KNeighborsClassifier(n_neighbors=3)
+        tempModel = KNeighborsClassifier(n_neighbors=5)
         tempModelScore=createModel("KNN", tempModel, X_train, X_test, y_train, y_test)
         if tempModelScore > modelScore:
             model=tempModel
@@ -205,10 +205,18 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="all"):
 #------------------Main------------------#
 
 #Use this value to skip the preprocessing stage
-skipPreprocess=True
+skipPreprocess=False
 exportPreprocessDataToFile=True
-approach="tfidf" #Choose approach (tfidf or bow)
-classifier="KNN" #Choose classifier: all (uses all and keep the best), logisticRegression, multinomialNB, gaussianNB, KNN, SVC,randomForest or NN
+
+#Use this values
+dataFrameUsage=0.1 #Use maximun of 1. To quick results use 0.002
+fileToExport='PreprocessedTweets'+str(int(dataFrameUsage*100))+'.csv' #if exportPreprocess and skipPreprocess is True, this will be the name of the file created
+fileToImport=fileToExport #Opens the preprocessed file
+
+#Select vectorization apporach and classifier
+approach="bow" #Choose approach (tfidf or bow)
+classifier="multinomialNB" #Choose classifier: all (uses all and keep the best), logisticRegression, multinomialNB, gaussianNB, KNN, SVC,randomForest or NN
+
 
 if skipPreprocess==0:
     #spaCy
@@ -225,7 +233,7 @@ if skipPreprocess==0:
     colNames=['Target','Id','Date','Flag','User','Text'] #Get the name of the columns
     encoding="ISO-8859-1"#utf8 cannot read some special characters so ISO-8859-1 is used
     fileName='tweet_dataset.csv'
-    dataFrameUsage=1 #Use maximun of 1. To quick results use 0.002
+
 
     print("Loading language model. This may take several seconds.")
     nlp = en_core_web_md.load()#Load the English medium spaCy language model('en_core_web_md')
@@ -259,12 +267,12 @@ if skipPreprocess==0:
     #Store in a file the preprocessed tweetd
     if exportPreprocessDataToFile == 1:
         dfExport=pd.concat([tweetTextPreprocessed, y], axis=1)
-        dfExport.to_csv('PreprocessedTweets.csv', index=False, encoding = "utf-8")
+        dfExport.to_csv(fileToExport, index=False, encoding = "utf-8")
 
 elif skipPreprocess==1:
     #Load the dataframe
-    print("Reading the preprocessed data from file...")
-    preprocessedData = pd.read_csv('PreprocessedTweets.csv', encoding = "utf-8")
+    print("Reading "+str(fileToImport)+" file with a "+str(dataFrameUsage*100)+"% of the preprocessed data.")
+    preprocessedData = pd.read_csv(fileToImport, encoding = "utf-8")
     y=preprocessedData.Target
     tweetTextPreprocessed=preprocessedData.Text
 
