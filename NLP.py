@@ -32,6 +32,7 @@ def approachAndClassifierMenu():
             print(str(i+1)+")",str(element)+" approach")
         
         selected=input("Choose: ")
+        print("------")
         if selected.isdigit()==False: pass
         elif int(selected)>=1 and int(selected)<=len(approachList):
             notSelected=False
@@ -45,6 +46,7 @@ def approachAndClassifierMenu():
             print(str(i+1)+")",str(element)+" classifier.")
         
         selected=input("Choose: ")
+        print("------")
         if selected.isdigit()==False: pass
         elif int(selected)>=1 and int(selected)<=len(classifierList):
             notSelected=False
@@ -72,6 +74,7 @@ def percentageOfData():
     percentageOfDataBoolean=False
     while percentageOfDataBoolean==False:
         selected=input("How much % of data do you want to use?\nAttention, high values may take hours to preprocess. Use a 2 for quick demonstration.\nEnter a number between 1 and 100: ")
+        print("------")
         if selected.isdigit()==False: pass
         elif int(selected)>=1 and int(selected)<=100:
             dataFrameUsage=float(int(selected)/100)
@@ -94,7 +97,7 @@ def chooseFile():
             if f.endswith('.csv') and f.startswith('PreprocessedTweets'):
                 # Extract digit string  
                 numbers = ''.join(filter(lambda i: i.isdigit(), f)) 
-                print(str(i)+")",str(f)+"\t\t---With a "+numbers+"% of the dtaset.")
+                print(str(i)+")",str(f)+"\t\t---With a "+numbers+"% of the dataset.")
                 i+=1
                 filesFound.append(path.abspath(directory+'\\'+f))
         if i == 1:
@@ -102,6 +105,7 @@ def chooseFile():
             return "NotFound"
         
         selected=input("Enter a number: ")
+        print("------")
         
         if selected.isdigit()==False: pass
         elif int(selected) == 0: sys.exit()
@@ -145,6 +149,7 @@ def startMenu():
                 
         else:
             print("Please, enter 'y' or 'n'")
+            print("------")
 
 
 #------------------Preprocessing--------------#
@@ -281,15 +286,26 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="All"):
     
     if classifier == "GaussianNB" or classifier == "All":
         notFound=1
-        from sklearn.naive_bayes import GaussianNB
-        tempModel = GaussianNB()
-        #GaussianNB doens't work with sparse array so we change it to dense
-        X_trainGNB = X_train.toarray() 
-        X_testGNB = X_test.toarray()
-        tempModelScore=createModel("Gaussian Naive Bayes", tempModel, X_trainGNB, X_testGNB, y_train, y_test)
-        if tempModelScore > modelScore:
-            model=tempModel
-            modelScore=tempModelScore
+        maxData=40000 #Threshold used to avoid memory issues
+        #Too much data will generate an error. We avoid this by checking the size of the data and skipping this model if there is too much data
+        countRow = y_train.size
+        if classifier == "GaussianNB" and countRow > maxData:
+            print("\nThere is too much data to create a model with GaussianNB. Switching to Logistic Regression classifier...")
+            model = trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="Logistic Regression")
+            return model
+        
+        elif classifier == "All" and countRow > maxData:
+            print("\nThere is too much data to create a model with GaussianNB. Skipping this classifier.")
+        else:
+            from sklearn.naive_bayes import GaussianNB
+            tempModel = GaussianNB()
+            #GaussianNB doens't work with sparse array so we change it to dense
+            X_trainGNB = X_train.toarray() 
+            X_testGNB = X_test.toarray()
+            tempModelScore=createModel("Gaussian Naive Bayes", tempModel, X_trainGNB, X_testGNB, y_train, y_test)
+            if tempModelScore > modelScore:
+                model=tempModel
+                modelScore=tempModelScore
         
     if classifier == "KNN" or classifier == "All":
         notFound=1
@@ -321,7 +337,7 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="All"):
     if classifier == "NN" or classifier == "All":
         notFound=1 
         from sklearn.neural_network import MLPClassifier
-        tempModel = MLPClassifier(solver='adam',hidden_layer_sizes=(9,7),max_iter=1500)
+        tempModel = MLPClassifier(solver='adam',hidden_layer_sizes=(8,6),max_iter=1200)
         tempModelScore = createModel("Neural Network", tempModel, X_train, X_test, y_train, y_test)
         if tempModelScore > modelScore:
             model=tempModel
@@ -337,14 +353,12 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="All"):
 
 #------------------Main------------------#
 
-#Show the menu
+#Show the start menu
 skipPreprocess,fileToImport,fileToExport,dataFrameUsage,exportPreprocessDataToFile=startMenu()
-
 
 #Select vectorization apporach and classifier
 approach,classifier=approachAndClassifierMenu()
-#approach="bow" #Choose approach (tfidf or bow)
-#classifier="multinomialNB" #Choose classifier: all (uses all and keep the best), logisticRegression, multinomialNB, gaussianNB, KNN, SVC,randomForest or NN
+
 
 
 if skipPreprocess==0:
@@ -400,7 +414,7 @@ if skipPreprocess==0:
 
 elif skipPreprocess==1:
     #Load the dataframe already preprocessed
-    print("Reading "+str(fileToImport)+" file with a "+str(dataFrameUsage*100)+"% of the preprocessed data.")
+    print("Reading "+str(fileToImport)+" file with preprocessed data.")
     preprocessedData = pd.read_csv(fileToImport, encoding = "utf-8")
     y=preprocessedData.Target
     tweetTextPreprocessed=preprocessedData.Text
