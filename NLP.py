@@ -15,9 +15,139 @@ from sklearn.model_selection import train_test_split
 
 #Utility
 import time
+from os import listdir, getcwd, path
+import sys 
 
 #------------------Functions--------------#
 
+
+#------------------Classifier and Vector Menu selection--------------#
+def approachAndClassifierMenu():
+    approachList=["Bag of Words","TFIDF"]
+    classifierList=["Logistic Regression", "MultinomialNB", "GaussianNB", "KNN", "SVC", "RandomForest","NN", "All"]
+    print("Which vectrization approach do you want to use?")
+    notSelected=True
+    while notSelected==True:
+        for i, element in enumerate(approachList):
+            print(str(i+1)+")",str(element)+" approach")
+        
+        selected=input("Choose: ")
+        if selected.isdigit()==False: pass
+        elif int(selected)>=1 and int(selected)<=len(approachList):
+            notSelected=False
+            approach=approachList[int(selected)-1]
+        else: pass
+    
+    print("Which classifier do you want to use?")
+    notSelected=True
+    while notSelected==True:
+        for i, element in enumerate(classifierList):
+            print(str(i+1)+")",str(element)+" classifier.")
+        
+        selected=input("Choose: ")
+        if selected.isdigit()==False: pass
+        elif int(selected)>=1 and int(selected)<=len(classifierList):
+            notSelected=False
+            classifier=classifierList[int(selected)-1]
+        else: pass
+    return approach, classifier
+
+
+#------------------StartMenu--------------#
+def exportData(dataFrameUsage):
+    exportDataBoolean=False
+    while exportDataBoolean==False:
+        dataReceived=str(input("Do you want to store the preprocessed data to a file? (y/n): "))
+        if dataReceived.lower() == 'y':#If yes, we return the path and the name of the file
+            path=getcwd()
+            path=path+'\PreprocessedTweets'+'\\'+'PreprocessedTweets'+str(int(dataFrameUsage*100))+'.csv'
+            return(True, path)
+       
+        elif dataReceived.lower() == 'n': return
+                
+        else: print("Please, enter 'y' or 'n'")
+
+
+def percentageOfData():
+    percentageOfDataBoolean=False
+    while percentageOfDataBoolean==False:
+        selected=input("How much % of data do you want to use?\nAttention, high values may take hours to preprocess. Use a 2 for quick demonstration.\nEnter a number between 1 and 100: ")
+        if selected.isdigit()==False: pass
+        elif int(selected)>=1 and int(selected)<=100:
+            dataFrameUsage=float(int(selected)/100)
+            return dataFrameUsage
+        else: pass
+        
+
+
+def chooseFile():
+    directory="PreprocessedTweets"
+    fileChosen=False
+    
+    while fileChosen==False:
+        print("Choose a preprocessed file:")
+        print("0) To abort the programm")
+        selected=False
+        i=1
+        filesFound=[]
+        for f in listdir(directory):
+            if f.endswith('.csv') and f.startswith('PreprocessedTweets'):
+                # Extract digit string  
+                numbers = ''.join(filter(lambda i: i.isdigit(), f)) 
+                print(str(i)+")",str(f)+"\t\t---With a "+numbers+"% of the dtaset.")
+                i+=1
+                filesFound.append(path.abspath(directory+'\\'+f))
+        if i == 1:
+            print("No preprocessed files found: changing to preprocess the data.")
+            return "NotFound"
+        
+        selected=input("Enter a number: ")
+        
+        if selected.isdigit()==False: pass
+        elif int(selected) == 0: sys.exit()
+        elif int(selected) > 0 and int(selected) < i:
+            fileChosen=True
+            fileToImport=filesFound[int(selected)-1]
+            return fileToImport
+            
+    return fileToImport
+
+
+def startMenu():
+    skipPreprocess=False
+    exportPreprocessDataToFile=False
+    dataFrameUsage=0.02
+    fileToExport=""
+    fileToImport=""
+    
+    skipPreprocessBoolean=False
+    
+    while skipPreprocessBoolean==False:
+        
+        dataReceived=str(input("Do you want to skip the preprocessing process by loading a preprocessed file? (y/n): "))
+        
+        if dataReceived.lower() == 'y':#If yes, we try to open the file
+            fileToImport=chooseFile()
+            if fileToImport=="NotFound":#If we couldn't find any file, go to preprocessData
+                skipPreprocess=False
+                dataFrameUsage=percentageOfData()
+                exportPreprocessDataToFile, fileToExport=exportData(dataFrameUsage)
+                return(skipPreprocess,fileToImport,fileToExport,dataFrameUsage,exportPreprocessDataToFile)
+                
+            skipPreprocess=True
+            return(skipPreprocess,fileToImport,fileToExport,dataFrameUsage,exportPreprocessDataToFile)
+        
+        elif dataReceived.lower() == 'n':
+            skipPreprocess=False
+            dataFrameUsage=percentageOfData()
+            exportPreprocessDataToFile, fileToExport =exportData(dataFrameUsage)
+            return(skipPreprocess,fileToImport,fileToExport,dataFrameUsage,exportPreprocessDataToFile)
+                
+        else:
+            print("Please, enter 'y' or 'n'")
+
+
+#------------------Preprocessing--------------#
 
 def prepareData(filename, colNames, header=0, encoding ='utf8', dataFrameUsage=0.002):
     
@@ -76,21 +206,24 @@ def textPreprocessing(text):
             cleanedText.append(token.lemma_)#If we are here is because this token lemma has to be added to the list      
     return " ".join(cleanedText)#Returns a string
 
-def vectorization(approach="tfidf"): 
-    if approach == "tfidf":
+
+#------------------NLP--------------#
+
+def vectorization(approach="TFIDF"): 
+    if approach == "TFIDF":
         # Create the matrix with TfidfVectorizer from our already tokenized text
         from sklearn.feature_extraction.text import TfidfVectorizer
         return TfidfVectorizer(sublinear_tf=True, max_df=0.8)
 
     
-    elif approach == "bow":
+    elif approach == "Bag of Words":
          # Create the matrix with BOW from our already tokenized text
         from sklearn.feature_extraction.text import CountVectorizer
         return CountVectorizer(max_df=0.8)
     
     else:
         print(str(approach)+"  not found, switching to tfidf...")
-        vector = vectorization(approach="tfidf")
+        vector = vectorization(approach="TFIDF")
         return vector
         
 def printingResults(classifier, modelScore, confusionMatrix, fitTime, predTime):
@@ -124,10 +257,10 @@ def createModel(classifier, model, X_train, X_test, y_train, y_test):
     
     return modelScore
 
-def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="all"):
+def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="All"):
     modelScore = 0
     notFound=0
-    if classifier == "logisticRegression" or classifier == "all":
+    if classifier == "Logistic Regression" or classifier == "All":
         notFound=1 
         from sklearn.linear_model import LogisticRegression
         tempModel = LogisticRegression(max_iter=10000)
@@ -137,7 +270,7 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="all"):
             model=tempModel
             modelScore=tempModelScore
        
-    if classifier == "multinomialNB" or classifier == "all":
+    if classifier == "MultinomialNB" or classifier == "All":
         notFound=1
         from sklearn.naive_bayes import MultinomialNB
         tempModel = MultinomialNB()
@@ -146,7 +279,7 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="all"):
             model=tempModel
             modelScore=tempModelScore
     
-    if classifier == "gaussianNB" or classifier == "all":
+    if classifier == "GaussianNB" or classifier == "All":
         notFound=1
         from sklearn.naive_bayes import GaussianNB
         tempModel = GaussianNB()
@@ -158,7 +291,7 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="all"):
             model=tempModel
             modelScore=tempModelScore
         
-    if classifier == "KNN" or classifier == "all":
+    if classifier == "KNN" or classifier == "All":
         notFound=1
         from sklearn.neighbors import KNeighborsClassifier
         tempModel = KNeighborsClassifier(n_neighbors=5)
@@ -167,7 +300,7 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="all"):
             model=tempModel
             modelScore=tempModelScore
 
-    if classifier == "SVC" or classifier == "all":
+    if classifier == "SVC" or classifier == "All":
         notFound=1
         from sklearn.svm import SVC
         tempModel = SVC(gamma='scale')
@@ -176,7 +309,7 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="all"):
             model=tempModel
             modelScore=tempModelScore
             
-    if classifier == "randomForest" or classifier == "all":
+    if classifier == "RandomForest" or classifier == "All":
         notFound=1
         from sklearn.ensemble import RandomForestClassifier
         tempModel = RandomForestClassifier()
@@ -185,7 +318,7 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="all"):
             model=tempModel
             modelScore=tempModelScore  
             
-    if classifier == "NN" or classifier == "all":
+    if classifier == "NN" or classifier == "All":
         notFound=1 
         from sklearn.neural_network import MLPClassifier
         tempModel = MLPClassifier(solver='adam',hidden_layer_sizes=(9,7),max_iter=1500)
@@ -196,7 +329,7 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="all"):
             
     if notFound == 0:
         print(str(classifier)+" classifier not found, switching to Logistic Regression classifier...")
-        model = trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="logisticRegression")
+        model = trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="Logistic Regression")
         return model
          
     return model #Returns the best model
@@ -204,18 +337,14 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="all"):
 
 #------------------Main------------------#
 
-#Use this value to skip the preprocessing stage
-skipPreprocess=False
-exportPreprocessDataToFile=True
+#Show the menu
+skipPreprocess,fileToImport,fileToExport,dataFrameUsage,exportPreprocessDataToFile=startMenu()
 
-#Use this values
-dataFrameUsage=0.1 #Use maximun of 1. To quick results use 0.002
-fileToExport='PreprocessedTweets'+str(int(dataFrameUsage*100))+'.csv' #if exportPreprocess and skipPreprocess is True, this will be the name of the file created
-fileToImport=fileToExport #Opens the preprocessed file
 
 #Select vectorization apporach and classifier
-approach="bow" #Choose approach (tfidf or bow)
-classifier="multinomialNB" #Choose classifier: all (uses all and keep the best), logisticRegression, multinomialNB, gaussianNB, KNN, SVC,randomForest or NN
+approach,classifier=approachAndClassifierMenu()
+#approach="bow" #Choose approach (tfidf or bow)
+#classifier="multinomialNB" #Choose classifier: all (uses all and keep the best), logisticRegression, multinomialNB, gaussianNB, KNN, SVC,randomForest or NN
 
 
 if skipPreprocess==0:
@@ -270,7 +399,7 @@ if skipPreprocess==0:
         dfExport.to_csv(fileToExport, index=False, encoding = "utf-8")
 
 elif skipPreprocess==1:
-    #Load the dataframe
+    #Load the dataframe already preprocessed
     print("Reading "+str(fileToImport)+" file with a "+str(dataFrameUsage*100)+"% of the preprocessed data.")
     preprocessedData = pd.read_csv(fileToImport, encoding = "utf-8")
     y=preprocessedData.Target
@@ -291,7 +420,7 @@ model = trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier=cla
 
 #Try the model with your own sentence
 print("\n-------- TESTING--------")
-#Write some sentences
+#Write some sentences to test them
 testText = ["I am too happpppy @Mario #NLP xD ;)","I wasn't háppy!! :( 66 www.mariocrespo.es"]
 dfTest = pd.DataFrame(testText, columns=['Text'])
 
