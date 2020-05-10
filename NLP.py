@@ -58,6 +58,7 @@ def approachAndClassifierMenu():
 #------------------StartMenu--------------#
 def exportData(dataFrameUsage):
     exportDataBoolean=False
+    path=""
     while exportDataBoolean==False:
         dataReceived=str(input("Do you want to store the preprocessed data to a file? (y/n): "))
         if dataReceived.lower() == 'y':#If yes, we return the path and the name of the file
@@ -65,7 +66,7 @@ def exportData(dataFrameUsage):
             path=path+'\PreprocessedTweets'+'\\'+'PreprocessedTweets'+str(int(dataFrameUsage*100))+'.csv'
             return(True, path)
        
-        elif dataReceived.lower() == 'n': return
+        elif dataReceived.lower() == 'n': return(False, path)
                 
         else: print("Please, enter 'y' or 'n'")
 
@@ -422,7 +423,7 @@ elif skipPreprocess==1:
 #Vectorize the data
 print("Using "+str(approach)+" approach.")
 vectorizationApproach = vectorization(approach)
-X = vectorizationApproach.fit_transform(tweetTextPreprocessed.values.astype('U'))
+X = vectorizationApproach.fit_transform(tweetTextPreprocessed.values.astype('U'))#The 'U' is for unicode since when reading the preprocessed .csv may return some non unicode values
 
 #Split the data. The data has been shuffled before, so we don't need to do it again but we keep it just in case we want to run the whole dataset
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=True)
