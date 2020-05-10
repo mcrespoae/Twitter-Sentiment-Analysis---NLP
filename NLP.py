@@ -304,10 +304,12 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="All"):
             X_trainGNB = X_train.toarray() 
             X_testGNB = X_test.toarray()
             tempModelScore=createModel("Gaussian Naive Bayes", tempModel, X_trainGNB, X_testGNB, y_train, y_test)
-            if tempModelScore > modelScore:
-                model=tempModel
-                modelScore=tempModelScore
-        
+            if classifier == "All": pass #Don't use this model since it requires a dense array to test it.
+            elif classifier == "GaussianNB":
+                print("\nCannot use this model to predict. Switching to Logistic Regression classifier...")
+                model = trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="Logistic Regression")
+                return model
+   
     if classifier == "KNN" or classifier == "All":
         notFound=1
         from sklearn.neighbors import KNeighborsClassifier
