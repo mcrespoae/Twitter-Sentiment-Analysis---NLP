@@ -99,13 +99,13 @@ def Preprocessing(dataFrameUsage, exportPreprocessDataToFile, fileToExport):
     tweetText, y = prepareData(fileName, colNames, encoding=encoding, dataFrameUsage=dataFrameUsage)
     
     #Preprocess the data specifically for NLP
-    preprocessTime=0.019*len(tweetText.index) #Get the estimate preprocess time in seconds 
-    print("Preprocessing the text. It will take approximately "+str(time.strftime("%Hh:%Mm:%Ss.", time.gmtime(preprocessTime)))+
+    preprocessTime=0.007*len(tweetText.index) #Get the estimate preprocess time in seconds 
+    print("Preprocessing the text. It will take up to "+str(time.strftime("%Hh:%Mm:%Ss.", time.gmtime(preprocessTime)))+
           " It should be done at: " + (datetime.now() + timedelta(seconds=preprocessTime)).strftime('%H:%M:%S.'))
 
     startPreprocessingTime=time.time()
     
-    #Divide the whole stuff into n chunks. Each chunk will be a thread.
+    #Divide the whole dataset into n chunks. Each chunk will be a thread.
     n=20
     chunks = [tweetText['Text'][i * n:(i + 1) * n] for i in range((len(tweetText['Text']) + n - 1) // n )]
               

@@ -111,7 +111,7 @@ def startMenu():
 def approachAndClassifierMenu():
     approachList=["Bag of Words","TFIDF"]
     classifierList=["Logistic Regression", "MultinomialNB", "GaussianNB", "KNN", "SVC", "RandomForest","NN", "All"]
-    print("Which vectrization approach do you want to use?")
+    print("Which vectorization approach do you want to use?")
     notSelected=True
     while notSelected==True:
         for i, element in enumerate(approachList):
