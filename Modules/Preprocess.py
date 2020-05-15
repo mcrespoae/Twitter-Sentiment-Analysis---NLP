@@ -68,8 +68,12 @@ def textPreprocessing(text):
     text = re.sub(r'#([^\s]+)', r'\1', text)#Remove the # from the #topic
     
     text = unidecode.unidecode(text)#Remove accents   
-      
-    text = list(cont.expand_texts([text], precise=True))[0]#Expand contractions
+    
+    #Sometimes it gets stuck here
+    try:
+        text = list(cont.expand_texts([text], precise=True))[0]#Expand contractions
+    except:
+        text=str(text)
 
     text = text.lower()#Convert the text to lowercase
     
@@ -99,7 +103,7 @@ def Preprocessing(dataFrameUsage, exportPreprocessDataToFile, fileToExport):
     tweetText, y = prepareData(fileName, colNames, encoding=encoding, dataFrameUsage=dataFrameUsage)
     
     #Preprocess the data specifically for NLP
-    preprocessTime=0.007*len(tweetText.index) #Get the estimate preprocess time in seconds 
+    preprocessTime=0.0085*len(tweetText.index) #Get the estimate preprocess time in seconds 
     print("Preprocessing the text. It will take up to "+str(time.strftime("%Hh:%Mm:%Ss.", time.gmtime(preprocessTime)))+
           " It should be done at: " + (datetime.now() + timedelta(seconds=preprocessTime)).strftime('%H:%M:%S.'))
 
