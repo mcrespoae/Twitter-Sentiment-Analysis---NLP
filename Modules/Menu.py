@@ -109,7 +109,7 @@ def startMenu():
 
 #------------------Classifier and Vector Menu selection--------------#
 def approachAndClassifierMenu():
-    approachList=["Bag of Words","TFIDF"]
+    approachList=["Bag of Words","TFIDF", "Word2Vec"]
     classifierList=["Logistic Regression", "MultinomialNB", "GaussianNB", "KNN", "SVC", "RandomForest","NN", "All"]
     print("Which vectorization approach do you want to use?")
     notSelected=True
