@@ -72,7 +72,7 @@ def vectorization(approach="TFIDF"):
     if approach == "TFIDF":
         # Create the matrix with TfidfVectorizer from our already tokenized text
         from sklearn.feature_extraction.text import TfidfVectorizer
-        return TfidfVectorizer(sublinear_tf=True, max_df=0.8)
+        return TfidfVectorizer(sublinear_tf=True, min_df=0.005, max_df=0.8)
 
     
     elif approach == "Bag of Words":
