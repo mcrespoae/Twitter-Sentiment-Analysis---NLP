@@ -44,7 +44,7 @@ def chooseFile():
     
     while fileChosen==False:
         print("Choose a preprocessed file:")
-        print("0) To abort the programm")
+        print("0) To abort the program")
         selected=False
         i=1
         filesFound=[]
@@ -83,7 +83,7 @@ def startMenu():
     
     while skipPreprocessBoolean==False:
         
-        dataReceived=str(input("Do you want to skip the preprocessing process by loading a preprocessed file? (y/n): "))
+        dataReceived=str(input("Do you want to skip the preprocessing by loading a preprocessed file? (y/n): "))
         
         if dataReceived.lower() == 'y':#If yes, we try to open the file
             fileToImport=chooseFile()

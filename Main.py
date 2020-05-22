@@ -35,7 +35,13 @@ def testing(skipPreprocess, exportPreprocessDataToFile, model):
         inputTestPreprocessedDF = pd.read_csv('./Test/PreprocessedTestText.csv', encoding = "utf-8")
         inputTestPreprocessed=inputTestPreprocessedDF.Text
         
-    inputTextVectorized = vectorizationApproach.transform(inputTestPreprocessed)
+    if approach != "Word2Vec":
+        #We use the tdfif or BOW vectorization
+        inputTextVectorized = vectorizationApproach.transform(inputTestPreprocessed)
+    else:
+        #We use the W2V 
+        inputTextVectorized = NLP.W2VTestData(w2vDict, inputTestPreprocessed, sizeW2v)
+        
     y_pred = model.predict(inputTextVectorized)
     y_pred = np.where(y_pred==4,"Positive","Negative")        
     
@@ -65,8 +71,13 @@ if __name__ == "__main__":
     
     #Vectorize the data
     print("Using "+str(approach)+" approach.")
-    vectorizationApproach = NLP.vectorization(approach)
-    X = vectorizationApproach.fit_transform(tweetTextPreprocessed.values.astype('U'))#The 'U' is for unicode since when reading the preprocessed .csv may return some non unicode values
+    if approach != "Word2Vec":
+        vectorizationApproach = NLP.vectorization(approach)
+        X = vectorizationApproach.fit_transform(tweetTextPreprocessed.values.astype('U'))#The 'U' is for unicode since when reading the preprocessed .csv may return some non unicode values
+    else:
+        sizeW2v=100 #Dimensions of the vectors of each token 
+        w2vDict, w2vlist = NLP.W2Vvectorization(tweetTextPreprocessed,sizeW2v)
+        X = NLP.W2VGetDataFrameFromDict(w2vDict, w2vlist, sizeW2v)
     
     #Split the data. The data has been shuffled before, so we don't need to do it again but we keep it just in case we want to run the whole dataset
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=True)
