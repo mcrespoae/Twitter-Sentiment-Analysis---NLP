@@ -16,8 +16,6 @@ import pandas as pd
 
 
 
-
-
 #------------------NLP--------------#
 def W2Vvectorization(tweetTextPreprocessed, sizeW2v=50):
     from gensim.models import Word2Vec
@@ -72,7 +70,7 @@ def vectorization(approach="TFIDF"):
     if approach == "TFIDF":
         # Create the matrix with TfidfVectorizer from our already tokenized text
         from sklearn.feature_extraction.text import TfidfVectorizer
-        return TfidfVectorizer(sublinear_tf=True, min_df=0.005, max_df=0.8)
+        return TfidfVectorizer(sublinear_tf=True, min_df=10, max_df=0.8)
 
     
     elif approach == "Bag of Words":
@@ -179,7 +177,7 @@ def trainClassifierandPrint(X_train, X_test, y_train, y_test, classifier="All"):
     if classifier == "SVC" or classifier == "All":
         notFound=1
         from sklearn.svm import SVC
-        tempModel = SVC(kernel="linear",gamma='auto')
+        tempModel = SVC(kernel="linear",gamma='scale')
         tempModelScore=createModel("SVC", tempModel, X_train, X_test, y_train, y_test)
         if tempModelScore > modelScore:
             model=tempModel
