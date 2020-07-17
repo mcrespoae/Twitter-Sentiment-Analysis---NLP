@@ -114,7 +114,7 @@ def Preprocessing(dataFrameUsage, exportPreprocessDataToFile, fileToExport):
     chunks = [tweetText['Text'][i * n:(i + 1) * n] for i in range((len(tweetText['Text']) + n - 1) // n )]
               
     #Preprocess the text in different threads
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor() as executor:
         #Create one thread per each chunk and returns it to the results object generator.
         #It will finish only when all the threads are finished
         results = executor.map(textPreprocessingChunk, chunks) 
